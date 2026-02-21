@@ -73,6 +73,9 @@ export default function History() {
                     <div>
                       <p className="font-medium text-foreground">{student?.name ?? "Unknown"}</p>
                       <p className="text-sm text-muted-foreground">{student?.class}</p>
+                      {record.keterangan && (
+                        <p className="mt-0.5 text-xs text-muted-foreground italic">"{record.keterangan}"</p>
+                      )}
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-muted-foreground">{record.time}</span>
