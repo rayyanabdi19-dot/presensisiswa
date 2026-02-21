@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { format } from "date-fns";
+import { CalendarIcon, FileBarChart, Download } from "lucide-react";
 import { getStudents, getRecords } from "@/lib/store";
 import {
   Select,
@@ -7,8 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileBarChart, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   BarChart,
   Bar,
@@ -31,13 +39,23 @@ export default function Reports() {
 
   const classes = useMemo(() => [...new Set(students.map((s) => s.class))].sort(), [students]);
   const [selectedClass, setSelectedClass] = useState<string>("all");
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const filteredStudents =
     selectedClass === "all" ? students : students.filter((s) => s.class === selectedClass);
 
+  const filteredRecords = useMemo(() => {
+    return records.filter((r) => {
+      if (startDate && r.date < format(startDate, "yyyy-MM-dd")) return false;
+      if (endDate && r.date > format(endDate, "yyyy-MM-dd")) return false;
+      return true;
+    });
+  }, [records, startDate, endDate]);
+
   const stats = useMemo(() => {
     return filteredStudents.map((student) => {
-      const studentRecords = records.filter((r) => r.studentId === student.id);
+      const studentRecords = filteredRecords.filter((r) => r.studentId === student.id);
       const hadir = studentRecords.filter((r) => r.status === "hadir").length;
       const izin = studentRecords.filter((r) => r.status === "izin").length;
       const sakit = studentRecords.filter((r) => r.status === "sakit").length;
@@ -46,7 +64,7 @@ export default function Reports() {
       const percentage = total > 0 ? Math.round((hadir / total) * 100) : 0;
       return { student, hadir, izin, sakit, alpha, total, percentage };
     });
-  }, [filteredStudents, records]);
+  }, [filteredStudents, filteredRecords]);
 
   const barData = useMemo(
     () =>
@@ -100,9 +118,9 @@ export default function Reports() {
           <h2 className="text-2xl font-bold text-foreground">Laporan Absensi</h2>
           <p className="text-muted-foreground">Rekap kehadiran per siswa</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <Select value={selectedClass} onValueChange={setSelectedClass}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-44">
               <SelectValue placeholder="Filter Kelas" />
             </SelectTrigger>
             <SelectContent>
@@ -112,6 +130,33 @@ export default function Reports() {
               ))}
             </SelectContent>
           </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                <CalendarIcon className="h-4 w-4 mr-1" />
+                {startDate ? format(startDate, "dd/MM/yyyy") : "Dari tanggal"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-[150px] justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                <CalendarIcon className="h-4 w-4 mr-1" />
+                {endDate ? format(endDate, "dd/MM/yyyy") : "Sampai tanggal"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single" selected={endDate} onSelect={setEndDate} disabled={(date) => startDate ? date < startDate : false} initialFocus className={cn("p-3 pointer-events-auto")} />
+            </PopoverContent>
+          </Popover>
+          {(startDate || endDate) && (
+            <Button variant="ghost" size="sm" onClick={() => { setStartDate(undefined); setEndDate(undefined); }}>
+              Reset
+            </Button>
+          )}
           <Button onClick={exportCSV} disabled={stats.length === 0} variant="outline">
             <Download className="h-4 w-4 mr-1" /> Export CSV
           </Button>
