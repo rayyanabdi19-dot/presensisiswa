@@ -7,7 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FileBarChart } from "lucide-react";
+import { FileBarChart, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Reports() {
   const students = getStudents();
@@ -32,6 +33,21 @@ export default function Reports() {
     });
   }, [filteredStudents, records]);
 
+  const exportCSV = () => {
+    const header = "Nama,Kelas,Hadir,Izin,Sakit,Alpha,Persentase";
+    const rows = stats.map(({ student, hadir, izin, sakit, alpha, percentage }) =>
+      `"${student.name}","${student.class}",${hadir},${izin},${sakit},${alpha},${percentage}%`
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `laporan-absensi${selectedClass !== "all" ? `-${selectedClass}` : ""}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -39,17 +55,22 @@ export default function Reports() {
           <h2 className="text-2xl font-bold text-foreground">Laporan Absensi</h2>
           <p className="text-muted-foreground">Rekap kehadiran per siswa</p>
         </div>
-        <Select value={selectedClass} onValueChange={setSelectedClass}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter Kelas" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Kelas</SelectItem>
-            {classes.map((c) => (
-              <SelectItem key={c} value={c}>{c}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2">
+          <Select value={selectedClass} onValueChange={setSelectedClass}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter Kelas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Kelas</SelectItem>
+              {classes.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={exportCSV} disabled={stats.length === 0} variant="outline">
+            <Download className="h-4 w-4 mr-1" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       {stats.length === 0 ? (
