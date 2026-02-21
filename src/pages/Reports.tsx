@@ -9,6 +9,21 @@ import {
 } from "@/components/ui/select";
 import { FileBarChart, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+
+const PIE_COLORS = ["hsl(142, 71%, 45%)", "hsl(38, 92%, 50%)", "hsl(25, 95%, 53%)", "hsl(0, 84%, 60%)"];
 
 export default function Reports() {
   const students = getStudents();
@@ -32,6 +47,36 @@ export default function Reports() {
       return { student, hadir, izin, sakit, alpha, total, percentage };
     });
   }, [filteredStudents, records]);
+
+  const barData = useMemo(
+    () =>
+      stats.map(({ student, hadir, izin, sakit, alpha }) => ({
+        name: student.name.split(" ")[0],
+        Hadir: hadir,
+        Izin: izin,
+        Sakit: sakit,
+        Alpha: alpha,
+      })),
+    [stats]
+  );
+
+  const pieData = useMemo(() => {
+    const totals = stats.reduce(
+      (acc, s) => ({
+        hadir: acc.hadir + s.hadir,
+        izin: acc.izin + s.izin,
+        sakit: acc.sakit + s.sakit,
+        alpha: acc.alpha + s.alpha,
+      }),
+      { hadir: 0, izin: 0, sakit: 0, alpha: 0 }
+    );
+    return [
+      { name: "Hadir", value: totals.hadir },
+      { name: "Izin", value: totals.izin },
+      { name: "Sakit", value: totals.sakit },
+      { name: "Alpha", value: totals.alpha },
+    ].filter((d) => d.value > 0);
+  }, [stats]);
 
   const exportCSV = () => {
     const header = "Nama,Kelas,Hadir,Izin,Sakit,Alpha,Persentase";
@@ -79,46 +124,105 @@ export default function Reports() {
           <p className="text-muted-foreground">Belum ada data.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-3 text-left font-semibold text-foreground">Nama</th>
-                <th className="px-4 py-3 text-left font-semibold text-foreground">Kelas</th>
-                <th className="px-4 py-3 text-center font-semibold text-success">Hadir</th>
-                <th className="px-4 py-3 text-center font-semibold text-warning">Izin</th>
-                <th className="px-4 py-3 text-center font-semibold text-warning">Sakit</th>
-                <th className="px-4 py-3 text-center font-semibold text-destructive">Alpha</th>
-                <th className="px-4 py-3 text-center font-semibold text-foreground">%</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {stats.map(({ student, hadir, izin, sakit, alpha, percentage }) => (
-                <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 font-medium text-foreground">{student.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{student.class}</td>
-                  <td className="px-4 py-3 text-center">{hadir}</td>
-                  <td className="px-4 py-3 text-center">{izin}</td>
-                  <td className="px-4 py-3 text-center">{sakit}</td>
-                  <td className="px-4 py-3 text-center">{alpha}</td>
-                  <td className="px-4 py-3 text-center">
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        percentage >= 80
-                          ? "bg-success/10 text-success"
-                          : percentage >= 50
-                          ? "bg-warning/10 text-warning"
-                          : "bg-destructive/10 text-destructive"
-                      }`}
+        <>
+          {/* Charts */}
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Bar Chart */}
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <h3 className="mb-4 text-sm font-semibold text-foreground">Grafik Kehadiran per Siswa</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={barData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  <Bar dataKey="Hadir" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Izin" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Sakit" fill="hsl(25, 95%, 53%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Alpha" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Pie Chart */}
+            <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+              <h3 className="mb-4 text-sm font-semibold text-foreground">Distribusi Status Kehadiran</h3>
+              {pieData.length === 0 ? (
+                <p className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">Belum ada data</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={4}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
-                      {percentage}%
-                    </span>
-                  </td>
+                      {pieData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Nama</th>
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">Kelas</th>
+                  <th className="px-4 py-3 text-center font-semibold text-success">Hadir</th>
+                  <th className="px-4 py-3 text-center font-semibold text-warning">Izin</th>
+                  <th className="px-4 py-3 text-center font-semibold text-warning">Sakit</th>
+                  <th className="px-4 py-3 text-center font-semibold text-destructive">Alpha</th>
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">%</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {stats.map(({ student, hadir, izin, sakit, alpha, percentage }) => (
+                  <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium text-foreground">{student.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{student.class}</td>
+                    <td className="px-4 py-3 text-center">{hadir}</td>
+                    <td className="px-4 py-3 text-center">{izin}</td>
+                    <td className="px-4 py-3 text-center">{sakit}</td>
+                    <td className="px-4 py-3 text-center">{alpha}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                          percentage >= 80
+                            ? "bg-success/10 text-success"
+                            : percentage >= 50
+                            ? "bg-warning/10 text-warning"
+                            : "bg-destructive/10 text-destructive"
+                        }`}
+                      >
+                        {percentage}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
