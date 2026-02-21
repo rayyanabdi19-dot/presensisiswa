@@ -1,14 +1,34 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { CheckCircle2, XCircle, ScanLine } from "lucide-react";
-import { addRecord, getStudents } from "@/lib/store";
+import { CheckCircle2, XCircle, ScanLine, UserCheck } from "lucide-react";
+import { addRecord, getStudents, type Student, type AttendanceRecord } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function Scanner() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Manual attendance state
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualStudent, setManualStudent] = useState<string>("");
+  const [manualStatus, setManualStatus] = useState<AttendanceRecord["status"]>("alpha");
+  const students = getStudents();
 
   const startScanning = async () => {
     setResult(null);
@@ -40,7 +60,6 @@ export default function Scanner() {
   const handleScan = (data: string) => {
     try {
       const parsed = JSON.parse(data);
-      const students = getStudents();
       const student = students.find((s) => s.id === parsed.id);
 
       if (!student) {
@@ -59,6 +78,23 @@ export default function Scanner() {
     }
   };
 
+  const handleManualSubmit = () => {
+    if (!manualStudent || !manualStatus) return;
+    const student = students.find((s) => s.id === manualStudent);
+    if (!student) return;
+
+    const record = addRecord(student.id, manualStatus);
+    if (record) {
+      const statusLabel = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alpha: "Alpha" }[manualStatus];
+      setResult({ success: true, message: `${student.name} dicatat sebagai ${statusLabel}` });
+    } else {
+      setResult({ success: false, message: `${student.name} sudah diabsen hari ini.` });
+    }
+    setManualStudent("");
+    setManualStatus("alpha");
+    setManualOpen(false);
+  };
+
   useEffect(() => {
     return () => {
       scannerRef.current?.stop().catch(() => {});
@@ -67,9 +103,57 @@ export default function Scanner() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6 pb-20 md:pb-0">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground">Scan QR Code</h2>
-        <p className="text-muted-foreground">Arahkan kamera ke QR code siswa</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Scan QR Code</h2>
+          <p className="text-muted-foreground">Arahkan kamera ke QR code siswa</p>
+        </div>
+        <Dialog open={manualOpen} onOpenChange={setManualOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              <UserCheck className="h-4 w-4 mr-1" /> Absen Manual
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Absen Manual</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Pilih Siswa</label>
+                <Select value={manualStudent} onValueChange={setManualStudent}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih siswa..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} — {s.class}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Status Kehadiran</label>
+                <Select value={manualStatus} onValueChange={(v) => setManualStatus(v as AttendanceRecord["status"])}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hadir">Hadir</SelectItem>
+                    <SelectItem value="izin">Izin</SelectItem>
+                    <SelectItem value="sakit">Sakit</SelectItem>
+                    <SelectItem value="alpha">Alpha</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button onClick={handleManualSubmit} disabled={!manualStudent} className="w-full">
+                Simpan Absensi
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
