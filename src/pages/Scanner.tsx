@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Scanner() {
   const [scanning, setScanning] = useState(false);
@@ -28,6 +29,7 @@ export default function Scanner() {
   const [manualOpen, setManualOpen] = useState(false);
   const [manualStudent, setManualStudent] = useState<string>("");
   const [manualStatus, setManualStatus] = useState<AttendanceRecord["status"]>("alpha");
+  const [manualKeterangan, setManualKeterangan] = useState("");
   const students = getStudents();
 
   const startScanning = async () => {
@@ -83,7 +85,8 @@ export default function Scanner() {
     const student = students.find((s) => s.id === manualStudent);
     if (!student) return;
 
-    const record = addRecord(student.id, manualStatus);
+    const needsKeterangan = manualStatus === "izin" || manualStatus === "alpha";
+    const record = addRecord(student.id, manualStatus, needsKeterangan ? manualKeterangan.trim() || undefined : undefined);
     if (record) {
       const statusLabel = { hadir: "Hadir", izin: "Izin", sakit: "Sakit", alpha: "Alpha" }[manualStatus];
       setResult({ success: true, message: `${student.name} dicatat sebagai ${statusLabel}` });
@@ -92,6 +95,7 @@ export default function Scanner() {
     }
     setManualStudent("");
     setManualStatus("alpha");
+    setManualKeterangan("");
     setManualOpen(false);
   };
 
@@ -148,6 +152,20 @@ export default function Scanner() {
                   </SelectContent>
                 </Select>
               </div>
+              {(manualStatus === "izin" || manualStatus === "alpha") && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">
+                    Keterangan {manualStatus === "izin" ? "Izin" : "Alpha"}
+                  </label>
+                  <Textarea
+                    placeholder={manualStatus === "izin" ? "Contoh: Acara keluarga, keperluan mendesak..." : "Contoh: Tanpa keterangan, tidak ada konfirmasi..."}
+                    value={manualKeterangan}
+                    onChange={(e) => setManualKeterangan(e.target.value)}
+                    maxLength={200}
+                    rows={3}
+                  />
+                </div>
+              )}
               <Button onClick={handleManualSubmit} disabled={!manualStudent} className="w-full">
                 Simpan Absensi
               </Button>

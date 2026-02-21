@@ -11,6 +11,7 @@ export interface AttendanceRecord {
   date: string;
   time: string;
   status: "hadir" | "izin" | "sakit" | "alpha";
+  keterangan?: string;
 }
 
 const STUDENTS_KEY = "attendance_students";
@@ -47,7 +48,7 @@ export function saveRecords(records: AttendanceRecord[]) {
   localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
 }
 
-export function addRecord(studentId: string, status: AttendanceRecord["status"] = "hadir"): AttendanceRecord | null {
+export function addRecord(studentId: string, status: AttendanceRecord["status"] = "hadir", keterangan?: string): AttendanceRecord | null {
   const today = new Date().toISOString().split("T")[0];
   const records = getRecords();
   const existing = records.find((r) => r.studentId === studentId && r.date === today);
@@ -59,6 +60,7 @@ export function addRecord(studentId: string, status: AttendanceRecord["status"] 
     date: today,
     time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
     status,
+    ...(keterangan ? { keterangan } : {}),
   };
   records.push(record);
   saveRecords(records);
