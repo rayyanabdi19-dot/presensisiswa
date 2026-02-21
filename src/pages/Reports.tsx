@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { format } from "date-fns";
+import { format, parse, getMonth, getYear } from "date-fns";
+import { id as localeId } from "date-fns/locale";
 import { CalendarIcon, FileBarChart, Download } from "lucide-react";
 import { getStudents, getRecords } from "@/lib/store";
 import {
@@ -95,6 +96,42 @@ export default function Reports() {
       { name: "Alpha", value: totals.alpha },
     ].filter((d) => d.value > 0);
   }, [stats]);
+
+  const MONTH_NAMES = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+  ];
+
+  const monthlyData = useMemo(() => {
+    const studentIds = new Set(filteredStudents.map((s) => s.id));
+    const relevantRecords = filteredRecords.filter((r) => studentIds.has(r.studentId));
+
+    const monthMap = new Map<string, { hadir: number; izin: number; sakit: number; alpha: number }>();
+
+    relevantRecords.forEach((r) => {
+      const d = parse(r.date, "yyyy-MM-dd", new Date());
+      const key = `${getYear(d)}-${String(getMonth(d)).padStart(2, "0")}`;
+      if (!monthMap.has(key)) {
+        monthMap.set(key, { hadir: 0, izin: 0, sakit: 0, alpha: 0 });
+      }
+      const m = monthMap.get(key)!;
+      m[r.status]++;
+    });
+
+    return Array.from(monthMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, val]) => {
+        const [year, month] = key.split("-");
+        const total = val.hadir + val.izin + val.sakit + val.alpha;
+        const percentage = total > 0 ? Math.round((val.hadir / total) * 100) : 0;
+        return {
+          label: `${MONTH_NAMES[parseInt(month)]} ${year}`,
+          ...val,
+          total,
+          percentage,
+        };
+      });
+  }, [filteredStudents, filteredRecords]);
 
   const exportCSV = () => {
     const header = "Nama,Kelas,Hadir,Izin,Sakit,Alpha,Persentase";
@@ -267,6 +304,80 @@ export default function Reports() {
               </tbody>
             </table>
           </div>
+          {/* Monthly Recap */}
+          {monthlyData.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">Rekap Bulanan</h3>
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Monthly Bar Chart */}
+                <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                  <h4 className="mb-4 text-sm font-semibold text-foreground">Grafik Kehadiran per Bulan</h4>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={monthlyData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                      <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: "12px" }} />
+                      <Bar dataKey="hadir" name="Hadir" fill="hsl(142, 71%, 45%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="izin" name="Izin" fill="hsl(38, 92%, 50%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="sakit" name="Sakit" fill="hsl(25, 95%, 53%)" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="alpha" name="Alpha" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Monthly Table */}
+                <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-muted/50">
+                        <th className="px-4 py-3 text-left font-semibold text-foreground">Bulan</th>
+                        <th className="px-4 py-3 text-center font-semibold text-success">Hadir</th>
+                        <th className="px-4 py-3 text-center font-semibold text-warning">Izin</th>
+                        <th className="px-4 py-3 text-center font-semibold text-warning">Sakit</th>
+                        <th className="px-4 py-3 text-center font-semibold text-destructive">Alpha</th>
+                        <th className="px-4 py-3 text-center font-semibold text-foreground">Total</th>
+                        <th className="px-4 py-3 text-center font-semibold text-foreground">%</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {monthlyData.map((m) => (
+                        <tr key={m.label} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3 font-medium text-foreground">{m.label}</td>
+                          <td className="px-4 py-3 text-center">{m.hadir}</td>
+                          <td className="px-4 py-3 text-center">{m.izin}</td>
+                          <td className="px-4 py-3 text-center">{m.sakit}</td>
+                          <td className="px-4 py-3 text-center">{m.alpha}</td>
+                          <td className="px-4 py-3 text-center">{m.total}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                m.percentage >= 80
+                                  ? "bg-success/10 text-success"
+                                  : m.percentage >= 50
+                                  ? "bg-warning/10 text-warning"
+                                  : "bg-destructive/10 text-destructive"
+                              }`}
+                            >
+                              {m.percentage}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
