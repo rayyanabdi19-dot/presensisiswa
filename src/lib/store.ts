@@ -40,6 +40,11 @@ export function deleteStudent(id: string) {
   saveStudents(students);
 }
 
+export function updateStudent(id: string, data: Partial<Omit<Student, "id">>) {
+  const students = getStudents().map((s) => (s.id === id ? { ...s, ...data } : s));
+  saveStudents(students);
+}
+
 export function getRecords(): AttendanceRecord[] {
   const data = localStorage.getItem(RECORDS_KEY);
   return data ? JSON.parse(data) : [];
