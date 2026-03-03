@@ -12,6 +12,7 @@ import ScheduleSettings from "./pages/ScheduleSettings";
 import SchoolProfile from "./pages/SchoolProfile";
 import Reports from "./pages/Reports";
 import Classes from "./pages/Classes";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/laporan" element={<Reports />} />
             <Route path="/riwayat" element={<History />} />
             <Route path="/profil-sekolah" element={<SchoolProfile />} />
+            <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

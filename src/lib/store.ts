@@ -3,6 +3,7 @@ export interface Student {
   name: string;
   class: string;
   nisn: string;
+  parentPhone?: string;
 }
 
 export interface AttendanceRecord {
@@ -73,12 +74,12 @@ export function getTodayRecords(): AttendanceRecord[] {
 }
 
 const defaultStudents: Student[] = [
-  { id: "1", name: "Ahmad Fauzi", class: "XII IPA 1", nisn: "0012345601" },
-  { id: "2", name: "Siti Nurhaliza", class: "XII IPA 1", nisn: "0012345602" },
-  { id: "3", name: "Budi Santoso", class: "XII IPA 1", nisn: "0012345603" },
-  { id: "4", name: "Dewi Lestari", class: "XII IPA 2", nisn: "0012345604" },
+  { id: "1", name: "Ahmad Fauzi", class: "XII IPA 1", nisn: "0012345601", parentPhone: "081234567801" },
+  { id: "2", name: "Siti Nurhaliza", class: "XII IPA 1", nisn: "0012345602", parentPhone: "081234567802" },
+  { id: "3", name: "Budi Santoso", class: "XII IPA 1", nisn: "0012345603", parentPhone: "081234567803" },
+  { id: "4", name: "Dewi Lestari", class: "XII IPA 2", nisn: "0012345604", parentPhone: "081234567804" },
   { id: "5", name: "Eko Prasetyo", class: "XII IPA 2", nisn: "0012345605" },
-  { id: "6", name: "Fitri Handayani", class: "XII IPS 1", nisn: "0012345606" },
+  { id: "6", name: "Fitri Handayani", class: "XII IPS 1", nisn: "0012345606", parentPhone: "081234567806" },
   { id: "7", name: "Gilang Ramadhan", class: "XII IPS 1", nisn: "0012345607" },
-  { id: "8", name: "Hana Safitri", class: "XII IPS 1", nisn: "0012345608" },
+  { id: "8", name: "Hana Safitri", class: "XII IPS 1", nisn: "0012345608", parentPhone: "081234567808" },
 ];
