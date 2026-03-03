@@ -13,6 +13,7 @@ import SchoolProfile from "./pages/SchoolProfile";
 import Reports from "./pages/Reports";
 import Classes from "./pages/Classes";
 import Install from "./pages/Install";
+import License from "./pages/License";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/riwayat" element={<History />} />
             <Route path="/profil-sekolah" element={<SchoolProfile />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/lisensi" element={<License />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>

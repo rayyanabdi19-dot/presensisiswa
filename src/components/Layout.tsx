@@ -11,6 +11,7 @@ import {
   BookOpen,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 
 const navItems = [
@@ -22,6 +23,7 @@ const navItems = [
   { to: "/laporan", icon: FileBarChart, label: "Laporan" },
   { to: "/riwayat", icon: ClipboardList, label: "Riwayat" },
   { to: "/profil-sekolah", icon: School, label: "Profil Sekolah" },
+  { to: "/lisensi", icon: Shield, label: "Lisensi" },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
