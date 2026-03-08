@@ -1,20 +1,32 @@
+import { useState, useEffect } from "react";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
 import StatCard from "@/components/StatCard";
-import { getStudents, getTodayRecords } from "@/lib/store";
+import { getStudents, getTodayRecords, type Student, type AttendanceRecord } from "@/lib/supabase-store";
 
 export default function Dashboard() {
-  const students = getStudents();
-  const todayRecords = getTodayRecords();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [todayRecords, setTodayRecords] = useState<AttendanceRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const [s, r] = await Promise.all([getStudents(), getTodayRecords()]);
+      setStudents(s);
+      setTodayRecords(r);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
   const hadir = todayRecords.filter((r) => r.status === "hadir").length;
   const izinSakit = todayRecords.filter((r) => r.status === "izin" || r.status === "sakit").length;
   const belum = students.length - todayRecords.length;
 
   const today = new Date().toLocaleDateString("id-ID", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
   });
+
+  if (loading) return <div className="flex justify-center py-20 text-muted-foreground">Memuat data...</div>;
 
   return (
     <div className="space-y-6 pb-20 md:pb-0">
@@ -30,7 +42,6 @@ export default function Dashboard() {
         <StatCard icon={UserX} label="Belum Absen" value={belum} variant="destructive" />
       </div>
 
-      {/* Recent attendance */}
       <div className="rounded-xl bg-card border border-border shadow-sm">
         <div className="border-b border-border px-5 py-4">
           <h3 className="font-semibold text-foreground">Absensi Hari Ini</h3>
@@ -51,15 +62,11 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm text-muted-foreground">{record.time}</span>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        record.status === "hadir"
-                          ? "bg-success/10 text-success"
-                          : record.status === "alpha"
-                          ? "bg-destructive/10 text-destructive"
-                          : "bg-warning/10 text-warning"
-                      }`}
-                    >
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      record.status === "hadir" ? "bg-success/10 text-success"
+                        : record.status === "alpha" ? "bg-destructive/10 text-destructive"
+                        : "bg-warning/10 text-warning"
+                    }`}>
                       {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
                     </span>
                   </div>
