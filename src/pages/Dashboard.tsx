@@ -2,20 +2,33 @@ import { useState, useEffect } from "react";
 import { Users, UserCheck, UserX, Clock } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import { getStudents, getTodayRecords, type Student, type AttendanceRecord } from "@/lib/supabase-store";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Dashboard() {
   const [students, setStudents] = useState<Student[]>([]);
   const [todayRecords, setTodayRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const loadData = async () => {
+    const [s, r] = await Promise.all([getStudents(), getTodayRecords()]);
+    setStudents(s);
+    setTodayRecords(r);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    async function load() {
-      const [s, r] = await Promise.all([getStudents(), getTodayRecords()]);
-      setStudents(s);
-      setTodayRecords(r);
-      setLoading(false);
-    }
-    load();
+    loadData();
+
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'attendance_records' },
+        () => { loadData(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const hadir = todayRecords.filter((r) => r.status === "hadir").length;
