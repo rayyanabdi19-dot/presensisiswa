@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
@@ -21,37 +21,31 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedLayout() {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground">Memuat...</p></div>;
   if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <Layout><Outlet /></Layout>;
 }
 
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="*" element={
-        <ProtectedRoute>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/siswa" element={<Students />} />
-              <Route path="/scan" element={<Scanner />} />
-              <Route path="/kelas" element={<Classes />} />
-              <Route path="/atur-jam" element={<ScheduleSettings />} />
-              <Route path="/laporan" element={<Reports />} />
-              <Route path="/riwayat" element={<History />} />
-              <Route path="/profil-sekolah" element={<SchoolProfile />} />
-              <Route path="/install" element={<Install />} />
-              <Route path="/lisensi" element={<License />} />
-              <Route path="/pengguna" element={<ManageUsers />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </ProtectedRoute>
-      } />
+      <Route element={<ProtectedLayout />}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/siswa" element={<Students />} />
+        <Route path="/scan" element={<Scanner />} />
+        <Route path="/kelas" element={<Classes />} />
+        <Route path="/atur-jam" element={<ScheduleSettings />} />
+        <Route path="/laporan" element={<Reports />} />
+        <Route path="/riwayat" element={<History />} />
+        <Route path="/profil-sekolah" element={<SchoolProfile />} />
+        <Route path="/install" element={<Install />} />
+        <Route path="/lisensi" element={<License />} />
+        <Route path="/pengguna" element={<ManageUsers />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
     </Routes>
   );
 }
