@@ -14,7 +14,152 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance_records: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          keterangan: string | null
+          status: string
+          student_id: string
+          time: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          keterangan?: string | null
+          status: string
+          student_id: string
+          time: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          keterangan?: string | null
+          status?: string
+          student_id?: string
+          time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_records_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          wali_kelas: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          wali_kelas?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          wali_kelas?: string | null
+        }
+        Relationships: []
+      }
+      schedules: {
+        Row: {
+          created_at: string
+          day: string
+          end_time: string
+          id: string
+          label: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          end_time: string
+          id?: string
+          label: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          end_time?: string
+          id?: string
+          label?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
+      school_profile: {
+        Row: {
+          address: string
+          email: string
+          id: string
+          name: string
+          npsn: string
+          phone: string
+          principal: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          email?: string
+          id?: string
+          name?: string
+          npsn?: string
+          phone?: string
+          principal?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          email?: string
+          id?: string
+          name?: string
+          npsn?: string
+          phone?: string
+          principal?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          class: string
+          created_at: string
+          id: string
+          name: string
+          nisn: string
+          parent_phone: string | null
+        }
+        Insert: {
+          class: string
+          created_at?: string
+          id?: string
+          name: string
+          nisn: string
+          parent_phone?: string | null
+        }
+        Update: {
+          class?: string
+          created_at?: string
+          id?: string
+          name?: string
+          nisn?: string
+          parent_phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
