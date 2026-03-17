@@ -45,6 +45,7 @@ function AppRoutes() {
         <Route path="/install" element={<Install />} />
         <Route path="/lisensi" element={<License />} />
         <Route path="/pengguna" element={<ManageUsers />} />
+        <Route path="/ganti-password" element={<ChangePassword />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

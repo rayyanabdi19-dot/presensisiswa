@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, ScanLine, ClipboardList, Clock,
-  School, FileBarChart, BookOpen, Menu, X, Shield, LogOut, UserPlus,
+  School, FileBarChart, BookOpen, Menu, X, Shield, LogOut, UserPlus, KeyRound,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
