@@ -17,6 +17,7 @@ import Install from "./pages/Install";
 import License from "./pages/License";
 import Login from "./pages/Login";
 import ManageUsers from "./pages/ManageUsers";
+import ChangePassword from "./pages/ChangePassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
