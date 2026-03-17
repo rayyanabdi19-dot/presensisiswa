@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -72,7 +73,7 @@ export default function ManageUsers() {
         </div>
         <div className="space-y-2">
           <Label>Password</Label>
-          <Input type="password" placeholder="Min. 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+          <PasswordInput placeholder="Min. 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
         </div>
         <Button type="submit" className="w-full" disabled={submitting}>
           <UserPlus className="mr-2 h-4 w-4" />

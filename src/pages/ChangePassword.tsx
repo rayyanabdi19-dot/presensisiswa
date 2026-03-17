@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { KeyRound } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -44,11 +44,11 @@ export default function ChangePassword() {
       <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
         <div className="space-y-2">
           <Label htmlFor="new-password">Password Baru</Label>
-          <Input id="new-password" type="password" placeholder="Min. 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+          <PasswordInput id="new-password" placeholder="Min. 6 karakter" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="confirm-password">Konfirmasi Password</Label>
-          <Input id="confirm-password" type="password" placeholder="Ulangi password baru" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} />
+          <PasswordInput id="confirm-password" placeholder="Ulangi password baru" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} />
         </div>
         <Button type="submit" className="w-full" disabled={submitting}>
           <KeyRound className="mr-2 h-4 w-4" />
