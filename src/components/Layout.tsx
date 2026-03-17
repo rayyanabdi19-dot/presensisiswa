@@ -61,6 +61,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="mb-2 px-3 text-xs text-muted-foreground truncate">
             {profile?.full_name}
           </div>
+          <NavLink to="/ganti-password" onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`
+            }>
+            <KeyRound className="h-4 w-4" /> Ganti Password
+          </NavLink>
           <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground" onClick={signOut}>
             <LogOut className="h-4 w-4" /> Keluar
           </Button>
